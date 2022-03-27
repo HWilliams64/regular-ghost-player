@@ -1,5 +1,7 @@
 .gradle
 /build/
+out/production/classes/professorCode
+out/production/classes/myCode
 
 # Ignore Gradle GUI config
 gradle-app.setting
