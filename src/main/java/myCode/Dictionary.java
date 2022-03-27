@@ -2,6 +2,7 @@ package myCode;
 
 import java.io.IOException;
 import java.util.Set;
+import professorCode.AbstractDictionary
 
 public class Dictionary extends AbstractDictionary {
 
