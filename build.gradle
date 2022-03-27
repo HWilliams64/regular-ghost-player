@@ -22,6 +22,7 @@ task createJar(type: Jar) {
                 'Main-Class': 'myCode.GhostSkeleton'
     }
     baseName = 'your_team_name' //Replace 'your_team_name' with your actual team name. No spaces allowed!
+    destinationDirectory.set(file("$projectDir/"))
     from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
 }
