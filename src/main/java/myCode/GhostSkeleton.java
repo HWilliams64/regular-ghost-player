@@ -1,10 +1,17 @@
 package myCode;
 
-import professorCode.TurnParser;
-
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.util.Random;
+
+import professorCode.TurnParser;
 
 public class GhostSkeleton {
 
@@ -21,7 +28,9 @@ public class GhostSkeleton {
 			throw new IllegalArgumentException(getTeamName()+".jar could not start because a shared file path was not specified as a runtime argument.");
 		}
 
-		if(!new File(args[0]).exists()){
+		final Path sharedFile = FileSystems.getDefault().getPath(sharedFilePath);
+
+		if(!sharedFile.toFile().exists()){
 			throw new FileNotFoundException(getTeamName()+".jar could not start because a shared file path specified points to a file that does not exist.");
 		}
 
@@ -44,58 +53,80 @@ public class GhostSkeleton {
 
 		dictionary = new Dictionary(dictionaryFilePath, fileManager);
 
-		//Starts your game loop
-		while(true) {
+		/*
+		 * Game running logic. This is where the shared game file is monitored for changes and the gameLogic()
+		 * function is called when a changed is witnessed.
+		 */
+		gameLogic(sharedFile.toString());
 
-			//Updates the file monitor with the most recent information
-			fileManager.update();
-
-			//A change to the shared file as occurred!
-			if(fileManager.hasChanged()) {
-
-				//We get the most recent line written to the shared file
-				String lastLine = fileManager.getLastLine(sharedFilePath);
-
-				//Check if its our turn
-				if (turnParser.isMyTurn(lastLine)) {
-
-					/*
-					 * This is where we'd would do our more complex logic for letter selection.
-					 *
-					 * We would use the wordFragment in combination with our dictionary to
-					 * find possible words that start with the given word fragment.
-					 *
-					 * For example purposes I am simply selecting a random letter from a - z.
-					 */
-					Random rnd = new Random();
-
-					char c = (char) (rnd.nextInt(26) + 'a');
-
-					String nextLetter = Character.toString(c);
-
-					//Figure out if we want even or odd length words
-					System.out.println("I WANT EVEN WORDS: "+doIWantEvenLengthWords());
-
-					//Adds the letter to our word fragment
-					wordFragment.append(nextLetter);
-
-					//Creates the next line to be written to the shared file
-					String nextLine = turnParser.getNextLine(nextLetter);
-
-					//Writes the next line to the shared file
-					fileManager.writeToFile(nextLine, sharedFilePath);
+		try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
+			sharedFile.getParent().register(watchService, StandardWatchEventKinds.ENTRY_MODIFY);
+			while (true) {
+				final WatchKey wk = watchService.take();
+				for (WatchEvent<?> event : wk.pollEvents()) {
+					final Path changed = (Path) event.context();
+					if (sharedFile.endsWith(changed)) {
+						gameLogic(changed.toString());
+					}
 				}
-
-				//Checks if the other player has finished their turn
-				else if(turnParser.didOtherPlayerFinishTurn(lastLine)){
-					//Adds their letter to my word fragment
-					wordFragment.append(turnParser.getOtherPlayersLetter(lastLine));
-
-					//The game is over and its time for us to quit
-				}else if(turnParser.isGameOver(lastLine)) {
-					System.exit(0);
+				boolean valid = wk.reset();
+				if (!valid) {
+					System.out.println("Key has been unregistered");
 				}
 			}
+		}
+	}
+
+	/**
+	 * This is where we implement our game logic. In this function you will:
+	 * 1) Read from the shared game file.
+	 * 2) Preform some logic based on the information your have read to select a word from the dictionary then play a letter based on the word.
+	 * 3) Write the letter to the file.
+	 *
+	 * @param filePath The file path to the shared game file
+	 * @throws IOException If anything wrong happens while attempting to read or write to the shared game file.
+	 */
+	private static void gameLogic(String filePath) throws IOException{
+		//We get the most recent line written to the shared file
+		String lastLine = fileManager.getLastLine(filePath);
+		//Check if its our turn
+		if (turnParser.isMyTurn(lastLine)) {
+
+			/*
+			 * This is where we'd would do our more complex logic for letter selection.
+			 *
+			 * We would use the wordFragment in combination with our dictionary to
+			 * find possible words that start with the given word fragment.
+			 *
+			 * For example purposes I am simply selecting a random letter from a - z.
+			 */
+			Random rnd = new Random();
+
+			char c = (char) (rnd.nextInt(26) + 'a');
+
+			String nextLetter = Character.toString(c);
+
+			//Figure out if we want even or odd length words
+			System.out.println("I WANT EVEN WORDS: "+doIWantEvenLengthWords());
+
+			//Adds the letter to our word fragment
+			wordFragment.append(nextLetter);
+
+			//Creates the next line to be written to the shared file
+			String nextLine = turnParser.getNextLine(nextLetter);
+
+			//Writes the next line to the shared file
+			fileManager.writeToFile(nextLine, sharedFilePath);
+		}
+
+		//Checks if the other player has finished their turn
+		else if(turnParser.didOtherPlayerFinishTurn(lastLine)){
+			//Adds their letter to my word fragment
+			wordFragment.append(turnParser.getOtherPlayersLetter(lastLine));
+
+			//The game is over and its time for us to quit
+		}else if(turnParser.isGameOver(lastLine)) {
+			System.exit(0);
 		}
 	}
 
