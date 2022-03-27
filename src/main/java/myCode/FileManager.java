@@ -1,4 +1,4 @@
-package homework;
+package myCode;
 
 public class FileManager extends AbstractFileMonitor{
 

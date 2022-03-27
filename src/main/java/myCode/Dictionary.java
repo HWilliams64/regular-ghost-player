@@ -1,4 +1,4 @@
-package homework;
+package myCode;
 
 import java.io.IOException;
 import java.util.Set;
