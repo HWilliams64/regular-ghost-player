@@ -20,7 +20,7 @@ public class GhostSkeleton {
 	private static StringBuffer wordFragment;
 	private static FileManager fileManager;
 	private static Dictionary dictionary;
-	public static String dictionaryFilePath = getRunningDirectory()+File.separator+"ARBITER_DICTIONARY.txt";
+	public static String dictionaryFilePath;
 
 	public static void main(String[] args) throws Exception {
 
@@ -28,18 +28,21 @@ public class GhostSkeleton {
 			throw new IllegalArgumentException(getTeamName()+".jar could not start because a shared file path was not specified as a runtime argument.");
 		}
 
+		//The location of the shared game file will be provided to you at runtime
+		sharedFilePath = args[0];
 		final Path sharedFile = FileSystems.getDefault().getPath(sharedFilePath);
 
 		if(!sharedFile.toFile().exists()){
 			throw new FileNotFoundException(getTeamName()+".jar could not start because a shared file path specified points to a file that does not exist.");
 		}
 
+		//The location of the dictionary
+		dictionaryFilePath = getRunningDirectory()+File.separator+"ARBITER_DICTIONARY.txt";
+
 		if(!new File(dictionaryFilePath).exists()){
 			throw new FileNotFoundException(getTeamName()+".jar could not start because the dictionary could not be found.");
 		}
 
-		//The location of the shared game file will be provided to you at runtime
-		sharedFilePath = args[0];
 
 		/*
 		 * Create all of your necessary classes.
