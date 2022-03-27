@@ -2,11 +2,12 @@ package myCode;
 
 import java.io.IOException;
 import java.util.Set;
-import professorCode.AbstractDictionary
+import professorCode.AbstractDictionary;
+import professorCode.FileTextReader;
 
 public class Dictionary extends AbstractDictionary {
 
-    public Dictionary(String path, FileTextReader dictionaryFileReader) throws IOException {
+    public Dictionary(String path, FileManager dictionaryFileReader) throws IOException {
         super(path, dictionaryFileReader);
     }
 
