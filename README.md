@@ -5,7 +5,7 @@ This is an empty ghost project where you will develop your regular ghost applica
 
 ## Getting started
 
-*It is assumed you are running your code in the courses preconfigured Carbon Workspace*
+*It is assumed you are running your code in the courses preconfigured Grader Than Workspace*
 
 1) Open your terminal and change the directory to a location you would like to save this project. Use the `cd` command
 to change the directory. Below is an example:
